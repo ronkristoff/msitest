@@ -13,6 +13,7 @@ type AuthFormProps = {
   loadingLabel: string;
   serverError: string;
   loading: boolean;
+  disabled?: boolean;
   footerLink: {
     label: string;
     href: string;
@@ -29,6 +30,7 @@ export function AuthForm({
   loadingLabel,
   serverError,
   loading,
+  disabled = false,
   footerLink,
   children,
   onSubmit,
@@ -51,7 +53,7 @@ export function AuthForm({
               <p className="text-sm text-error">{serverError}</p>
             )}
 
-            <Button type="submit" disabled={loading} loading={loading}>
+            <Button type="submit" disabled={disabled || loading} loading={loading}>
               {loading ? loadingLabel : submitLabel}
             </Button>
           </form>

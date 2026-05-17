@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,15 +21,17 @@ const inputClass =
 const errorClass = "text-xs text-error mt-1";
 
 export default function SignInPage() {
+  const router = useRouter();
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<SignInForm>({
     resolver: zodResolver(signInSchema),
+    mode: "onChange",
   });
 
   async function onSubmit(data: SignInForm) {
@@ -38,8 +41,12 @@ export default function SignInPage() {
       email: data.email,
       password: data.password,
     });
-    if (error) setServerError(error.message || "Sign in failed");
-    setLoading(false);
+    if (error) {
+      setServerError(error.message || "Sign in failed");
+      setLoading(false);
+    } else {
+      router.push("/");
+    }
   }
 
   return (
@@ -51,6 +58,7 @@ export default function SignInPage() {
       loadingLabel="Signing in..."
       serverError={serverError}
       loading={loading}
+      disabled={!isValid}
       footerLink={{
         label: "Sign up",
         href: "/sign-up",
