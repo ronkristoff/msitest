@@ -1,0 +1,192 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Colors */
+  --color-pitch-black: #000000;
+  --color-ghost-white: #ffffff;
+  --color-cloud-gray: #f9f8f6;
+  --color-inkwell: #55534e;
+  --color-platinum-gray: #e6e8ec;
+  --color-oatmeal: #dad4c8;
+  --color-clay-violet: #3859f9;
+  --color-vivid-sky: #429dff;
+  --color-tangerine: #ff7614;
+  --color-lime-pop: #cbd810;
+  --color-azure-glow: #3bd3fd;
+  --color-matcha-green: #02693e;
+  --color-dragonfruit-pink: #8b045c;
+  --color-blueberry-deep: #0667d9;
+  --color-ube-haze: #c1b0ff;
+
+  /* Semantic status colors */
+  --color-success: #16a34a;
+  --color-success-bg: rgb(22 163 74 / 0.1);
+  --color-error: #dc2626;
+  --color-error-bg: rgb(220 38 38 / 0.1);
+  --color-warning: #d97706;
+  --color-running: #3859f9;
+  --color-running-bg: rgb(56 89 249 / 0.1);
+
+  /* Typography */
+  --font-sans: 'Satoshi', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Border Radius */
+  --radius-interactiveelements: 8px;
+  --radius-cards: 12px;
+  --radius-buttons: 12px;
+  --radius-largecards: 40px;
+  --radius-pill: 1584px;
+
+  /* Shadows */
+  --shadow-subtle: rgba(0, 0, 0, 0.1) 0px 1px 1px 0px, rgba(0, 0, 0, 0.04) 0px -1px 1px 0px inset, rgba(0, 0, 0, 0.05) 0px -0.5px 1px 0px;
+  --animate-skeleton: skeleton 2s -1s infinite linear;
+  --animate-caret-blink: 1s ease-out infinite caret-blink;
+  --animate-toast-success-odd: toast-success-odd 0.32s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-success-even: toast-success-even 0.32s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-error-odd: toast-error-odd 0.28s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-error-even: toast-error-even 0.28s cubic-bezier(0.5, 1, 0.89, 1);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success-foreground: var(--success-foreground);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
+  --color-destructive-foreground: var(--destructive-foreground);
+  @keyframes skeleton {
+  to {
+    background-position: -200% 0;
+    }
+  }
+  @keyframes caret-blink {
+  0%, 70%, to {
+    opacity: 1;
+    }
+  20%, 50% {
+    opacity: 0;
+    }
+  }
+  @keyframes toast-success-odd {
+  0% {
+    scale: 1;
+    }
+  30% {
+    scale: 1.025;
+    }
+  60% {
+    scale: 0.99;
+    }
+  100% {
+    scale: 1;
+    }
+  }
+  @keyframes toast-error-odd {
+  0% {
+    translate: 0 0;
+    }
+  25% {
+    translate: -3px 0;
+    }
+  50% {
+    translate: 3px 0;
+    }
+  75% {
+    translate: -3px 0;
+    }
+  100% {
+    translate: 0 0;
+    }
+  }
+  @keyframes toast-success-even {
+  0% {
+    scale: 1;
+    }
+  30% {
+    scale: 1.025;
+    }
+  60% {
+    scale: 0.99;
+    }
+  100% {
+    scale: 1;
+    }
+  }
+  @keyframes toast-error-even {
+  0% {
+    translate: 0 0;
+    }
+  25% {
+    translate: -3px 0;
+    }
+  50% {
+    translate: 3px 0;
+    }
+  75% {
+    translate: -3px 0;
+    }
+  100% {
+    translate: 0 0;
+    }
+  }
+}
+
+body {
+  background: var(--color-ghost-white);
+  color: var(--color-pitch-black);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+:root {
+  --destructive-foreground: var(--color-error);
+  --info: var(--color-vivid-sky);
+  --info-foreground: var(--color-inkwell);
+  --success: var(--color-success);
+  --success-foreground: var(--color-success);
+  --warning: var(--color-warning);
+  --warning-foreground: var(--color-warning);
+
+  /* shadcn-style variables mapped to Clay palette */
+  --background: var(--color-ghost-white);
+  --foreground: var(--color-pitch-black);
+  --primary: var(--color-pitch-black);
+  --primary-foreground: var(--color-ghost-white);
+  --secondary: var(--color-cloud-gray);
+  --secondary-foreground: var(--color-inkwell);
+  --muted: var(--color-cloud-gray);
+  --muted-foreground: var(--color-inkwell);
+  --accent: color-mix(in srgb, var(--color-clay-violet) 10%, transparent);
+  --accent-foreground: var(--color-clay-violet);
+  --destructive: var(--color-error);
+  --border: var(--color-oatmeal);
+  --input: var(--color-oatmeal);
+  --ring: var(--color-clay-violet);
+  --radius: 0.75rem;
+  --radius-lg: 0.5rem;
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --sidebar-background: var(--color-ghost-white);
+  --sidebar-foreground: var(--color-pitch-black);
+  --sidebar-primary: var(--color-pitch-black);
+  --sidebar-primary-foreground: var(--color-ghost-white);
+  --sidebar-accent: var(--color-cloud-gray);
+  --sidebar-accent-foreground: var(--color-inkwell);
+  --sidebar-border: var(--color-oatmeal);
+  --sidebar-ring: var(--color-clay-violet);
+}
+
+/* COSS added dark block — removed (Clay is light-only) */
