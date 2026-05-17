@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { FormField } from "@/components/form-field";
 import { AuthForm } from "@/components/auth-form";
 import { authClient } from "@/lib/auth-client";
 
@@ -18,7 +19,6 @@ type SignInForm = z.infer<typeof signInSchema>;
 
 const inputClass =
   "h-9 rounded-buttons border-oatmeal bg-background text-foreground placeholder:text-muted-foreground/50";
-const errorClass = "text-xs text-error mt-1";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -66,10 +66,7 @@ export default function SignInPage() {
       }}
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-xs font-medium text-muted-foreground">
-          Email
-        </label>
+      <FormField label="Email" htmlFor="email" error={errors.email?.message}>
         <Input
           id="email"
           type="email"
@@ -77,13 +74,9 @@ export default function SignInPage() {
           className={inputClass}
           placeholder="you@example.com"
         />
-        {errors.email && <p className={errorClass}>{errors.email.message}</p>}
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-xs font-medium text-muted-foreground">
-          Password
-        </label>
+      <FormField label="Password" htmlFor="password" error={errors.password?.message}>
         <Input
           id="password"
           type="password"
@@ -91,10 +84,7 @@ export default function SignInPage() {
           className={inputClass}
           placeholder="Enter your password"
         />
-        {errors.password && (
-          <p className={errorClass}>{errors.password.message}</p>
-        )}
-      </div>
+      </FormField>
     </AuthForm>
   );
 }

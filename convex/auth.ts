@@ -14,6 +14,7 @@ import { convex } from "@convex-dev/better-auth/plugins";
 import { components } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
+import { v } from "convex/values";
 import { betterAuth } from "better-auth";
 import { organization } from "better-auth/plugins";
 import authConfig from "./auth.config";
@@ -49,6 +50,15 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
 
 export const getCurrentUser = query({
   args: {},
+  returns: v.union(
+    v.object({
+      _id: v.id("user"),
+      _creationTime: v.number(),
+      name: v.string(),
+      email: v.string(),
+    }),
+    v.null(),
+  ),
   handler: async (ctx) => {
     return authComponent.getAuthUser(ctx);
   },
