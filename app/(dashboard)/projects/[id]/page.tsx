@@ -1,19 +1,49 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useQuery } from "convex/react";
+import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { PrdUpload } from "@/components/prd-upload";
+import { FeatureMapView } from "@/components/feature-map-view";
+import { IconArrowLeft, IconSparkles } from "@tabler/icons-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const project = useQuery(api.projects.getProject, {
-    projectId: id as Id<"projects">,
-  });
+  const projectId = id as Id<"projects">;
 
-  if (project === undefined) {
+  const project = useQuery(api.projects.getProject, { projectId });
+  const user = useQuery(api.auth.getCurrentUser);
+  const featureMaps = useQuery(api.feature_maps_mutations.listByProject, { projectId });
+  const extractFeatureMap = useAction(api.feature_maps.extractFeatureMap);
+
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState("");
+
+  const hasPrd = featureMaps && featureMaps.length > 0;
+  const prdDocId = featureMaps?.[0]?.prdId;
+
+  async function handleExtract() {
+    if (!prdDocId || !user?._id) return;
+    setExtractError("");
+    setExtracting(true);
+    try {
+      await extractFeatureMap({
+        prdDocumentId: prdDocId,
+        projectId,
+        scopeId: user._id,
+      });
+    } catch (e) {
+      setExtractError(e instanceof Error ? e.message : "Extraction failed");
+    } finally {
+      setExtracting(false);
+    }
+  }
+
+  if (project === undefined || featureMaps === undefined) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
         Loading...
@@ -45,7 +75,7 @@ export default function ProjectDetailPage() {
       <h1 className="text-[32px] leading-tight font-bold text-pitch-black mb-2">{project.name}</h1>
       <p className="text-inkwell mb-6">{project.description}</p>
 
-      <div className="border border-oatmeal rounded-cards bg-ghost-white p-6">
+      <div className="border border-oatmeal rounded-cards bg-ghost-white p-6 mb-8">
         <div className="grid grid-cols-2 gap-6">
           <div>
             <p className="text-xs font-medium text-inkwell mb-1">Target URL</p>
@@ -67,9 +97,43 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      <div className="mt-8 border border-oatmeal rounded-cards bg-ghost-white p-8 flex flex-col items-center gap-3">
-        <p className="text-inkwell text-sm">PRD upload, feature maps, and test plans coming soon.</p>
+      {/* PRD Upload Section */}
+      <div className="mb-8">
+        <PrdUpload projectId={projectId} onUploaded={() => window.location.reload()} />
       </div>
+
+      {/* Extract Features Button */}
+      {prdDocId && (
+        <div className="mb-8">
+          <Button
+            onClick={handleExtract}
+            disabled={extracting}
+            loading={extracting}
+            className="gap-2"
+          >
+            <IconSparkles size={16} />
+            {extracting ? "Extracting features..." : "Extract Features"}
+          </Button>
+          {extractError && (
+            <p className="text-xs text-error mt-2">{extractError}</p>
+          )}
+        </div>
+      )}
+
+      {/* Feature Map Display */}
+      {hasPrd && (
+        <div className="border border-oatmeal rounded-cards bg-ghost-white p-6">
+          <FeatureMapView projectId={projectId} />
+        </div>
+      )}
+
+      {!hasPrd && (
+        <div className="border border-oatmeal rounded-cards bg-ghost-white p-8 flex flex-col items-center gap-3">
+          <p className="text-inkwell text-sm">
+            Upload a PRD document and extract features to get started.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

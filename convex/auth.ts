@@ -63,3 +63,16 @@ export const getCurrentUser = query({
     return authComponent.getAuthUser(ctx);
   },
 });
+
+/**
+ * Resolves the authenticated user's scope identifier.
+ *
+ * Currently uses the user's `tokenIdentifier` from the JWT identity for
+ * single-user data isolation. When multi-user teams are added, this will
+ * return an org-based team ID.
+ */
+export async function requireUserId(ctx: { auth: { getUserIdentity: () => Promise<{ tokenIdentifier: string } | null> } }) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Not authenticated");
+  return identity.tokenIdentifier;
+}

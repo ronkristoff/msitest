@@ -140,12 +140,13 @@ export default defineSchema({
   }).index("by_result", ["resultId"]),
 
   credentials: defineTable({
-    projectId: v.id("projects"),
+    scopeId: v.string(),
     name: v.string(),
     type: v.string(),
     value: v.string(),
     targetUrl: v.optional(v.string()),
-  }).index("by_project", ["projectId"]),
+  }).index("by_scope", ["scopeId"])
+    .index("by_scope_and_name", ["scopeId", "name"]),
 
   workers: defineTable({
     name: v.string(),

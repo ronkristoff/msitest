@@ -1,20 +1,11 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireUserId } from "./auth";
 
 /**
- * Resolves the authenticated user's scope identifier.
- *
- * Currently uses the user's `tokenIdentifier` from the JWT identity for
- * single-user data isolation. This is intentionally NOT a real team/org ID
- * yet — the Better Auth `organization` plugin is configured but not yet
- * wired into project scoping. When multi-user teams are added, this will be
- * replaced with an org-based team ID from auth.ts.
+ * Internal helper — resolves the authenticated user's scope identifier.
+ * Delegates to auth.ts for the canonical implementation.
  */
-async function requireUserId(ctx: { auth: { getUserIdentity: () => Promise<{ tokenIdentifier: string } | null> } }) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Not authenticated");
-  return identity.tokenIdentifier;
-}
 
 export const createProject = mutation({
   args: {
