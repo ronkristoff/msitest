@@ -86,3 +86,44 @@ Convex agent skills for common tasks can be installed by running
 `npx convex ai-files install`.
 
 <!-- convex-ai-end -->
+
+## Graphify — Code Intelligence
+
+This project has a Graphify knowledge graph at `graphify-out/`.
+
+> If the graph seems stale, run `graphify update .` (AST-only, no API cost).
+
+### Always Do
+
+- **Before answering architecture or codebase questions**, read `graphify-out/GRAPH_REPORT.md` for god nodes and community structure.
+- **For cross-module questions** ("how does X relate to Y?"), prefer `graphify query`, `graphify path`, or `graphify explain` over grep — these traverse the graph's EXTRACTED + INFERRED edges.
+- **If `graphify-out/wiki/index.md` exists**, navigate it instead of reading raw files.
+- **After modifying code files**, run `graphify update .` to keep the graph current.
+- **Before editing a function or module**, use `graphify path "<symbol>" "<downstream>"` to understand blast radius and dependencies.
+- **Before committing**, review your changes and use `graphify query "<area>"` to verify affected scope matches expectations.
+
+### Never Do
+
+- NEVER use plain find-and-replace for renaming — use `graphify query` to find all references in the graph first.
+- NEVER skip `graphify update .` after committing — the graph must stay current.
+- NEVER ignore dependency paths that show tight coupling when planning refactors.
+
+### Commands
+
+| Task | Command |
+|------|---------|
+| Full graph rebuild | `graphify analyze .` |
+| Incremental AST update | `graphify update .` |
+| Ask a question | `graphify query "<question>"` |
+| Trace dependency path | `graphify path "<A>" "<B>"` |
+| Explain a concept | `graphify explain "<concept>"` |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `graphify-out/GRAPH_REPORT.md` | God nodes, community structure, architecture overview |
+| `graphify-out/graph.json` | Full graph data (nodes + edges) |
+| `graphify-out/graph.html` | Interactive visual explorer |
+| `graphify-out/manifest.json` | File manifest and metadata |
+| `graphify-out/wiki/` | Navigable wiki (if generated) |
