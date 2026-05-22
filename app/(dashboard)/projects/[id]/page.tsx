@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useQuery, useAction, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { PrdUpload } from "@/components/prd-upload";
 import { FeatureMapView } from "@/components/feature-map-view";
-import { IconArrowLeft, IconSparkles } from "@tabler/icons-react";
+import { ExplorationStatus } from "@/components/exploration-status";
+import { IconArrowLeft, IconSparkles, IconWorld } from "@tabler/icons-react";
 import type { Id } from "@/convex/_generated/dataModel";
 
 export default function ProjectDetailPage() {
@@ -18,13 +19,16 @@ export default function ProjectDetailPage() {
   const project = useQuery(api.projects.getProject, { projectId });
   const user = useQuery(api.auth.getCurrentUser);
   const featureMaps = useQuery(api.feature_maps_mutations.listByProject, { projectId });
+  const startExploration = useMutation(api.explore.startExploration);
   const extractFeatureMap = useAction(api.feature_maps.extractFeatureMap);
 
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState("");
+  const [exploring, setExploring] = useState(false);
 
   const hasPrd = featureMaps && featureMaps.length > 0;
   const prdDocId = featureMaps?.[0]?.prdId;
+  const latestFeatureMap = featureMaps?.[0];
 
   async function handleExtract() {
     if (!prdDocId || !user?._id) return;
@@ -117,6 +121,42 @@ export default function ProjectDetailPage() {
           {extractError && (
             <p className="text-xs text-error mt-2">{extractError}</p>
           )}
+        </div>
+      )}
+
+      {/* Explore App Button */}
+      {latestFeatureMap && project && (
+        <div className="mb-8 flex items-center gap-3">
+          <Button
+            onClick={async () => {
+              setExploring(true);
+              try {
+                await startExploration({ projectId, featureMapId: latestFeatureMap._id });
+              } finally {
+                setExploring(false);
+              }
+            }}
+            disabled={exploring}
+            loading={exploring}
+            variant="outline"
+            className="gap-2"
+          >
+            <IconWorld size={16} />
+            {exploring ? "Starting exploration..." : "Explore App"}
+          </Button>
+          <p className="text-xs text-inkwell">
+            Worker CLI will navigate your app and match features.
+          </p>
+        </div>
+      )}
+
+      {/* Exploration Status */}
+      {hasPrd && featureMaps[0] && (
+        <div className="border border-oatmeal rounded-cards bg-ghost-white p-6 mb-8">
+          <ExplorationStatus
+            features={featureMaps[0].features}
+            explorationStatus={featureMaps[0].explorationStatus as Record<string, string> | undefined}
+          />
         </div>
       )}
 

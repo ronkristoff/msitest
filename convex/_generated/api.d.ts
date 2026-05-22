@@ -11,6 +11,7 @@
 import type * as auth from "../auth.js";
 import type * as credentials from "../credentials.js";
 import type * as encryption from "../encryption.js";
+import type * as explore from "../explore.js";
 import type * as feature_maps from "../feature_maps.js";
 import type * as feature_maps_mutations from "../feature_maps_mutations.js";
 import type * as http from "../http.js";
@@ -18,6 +19,7 @@ import type * as llm from "../llm.js";
 import type * as prd_documents from "../prd_documents.js";
 import type * as prd_documents_mutations from "../prd_documents_mutations.js";
 import type * as projects from "../projects.js";
+import type * as workers from "../workers.js";
 
 import type {
   ApiFromModules,
@@ -29,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   credentials: typeof credentials;
   encryption: typeof encryption;
+  explore: typeof explore;
   feature_maps: typeof feature_maps;
   feature_maps_mutations: typeof feature_maps_mutations;
   http: typeof http;
@@ -36,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   prd_documents: typeof prd_documents;
   prd_documents_mutations: typeof prd_documents_mutations;
   projects: typeof projects;
+  workers: typeof workers;
 }>;
 
 /**
@@ -66,4 +70,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
+  exploration: import("@convex-dev/workpool/_generated/component.js").ComponentApi<"exploration">;
 };

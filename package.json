@@ -9,11 +9,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@convex-dev/better-auth": "^0.12.2",
+    "@convex-dev/workpool": "^0.4.6",
     "@hookform/resolvers": "^5.2.2",
     "@tabler/icons-react": "^3.44.0",
     "better-auth": "^1.6.11",
@@ -23,6 +25,7 @@
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "pdf-parse": "^2.4.5",
+    "playwright": "^1.60.0",
     "react": "19.2.4",
     "react-day-picker": "^10.0.1",
     "react-dom": "19.2.4",
@@ -41,6 +44,7 @@
     "convex-test": "^0.0.52",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "husky": "^9.1.7",
     "npm-run-all": "^4.1.5",
     "tailwindcss": "^4",
     "typescript": "^5",

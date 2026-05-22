@@ -60,7 +60,14 @@ export const getCurrentUser = query({
     v.null(),
   ),
   handler: async (ctx) => {
-    return authComponent.getAuthUser(ctx);
+    const user = await authComponent.getAuthUser(ctx);
+    if (!user) return null;
+    return {
+      _id: user._id,
+      _creationTime: user._creationTime,
+      name: user.name,
+      email: user.email,
+    };
   },
 });
 
@@ -71,7 +78,16 @@ export const getCurrentUser = query({
  * single-user data isolation. When multi-user teams are added, this will
  * return an org-based team ID.
  */
-export async function requireUserId(ctx: { auth: { getUserIdentity: () => Promise<{ tokenIdentifier: string } | null> } }) {
+export async function requireUserId(ctx: Parameters<typeof authComponent.getAuthUser>[0]) {
+  // Try Better Auth component first (production path)
+  try {
+    const user = await authComponent.getAuthUser(ctx);
+    if (user) return user._id;
+  } catch {
+    // Component not available — fall through to JWT identity (test env)
+  }
+
+  // Fallback: use JWT identity (works in convex-test with .withIdentity())
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   return identity.tokenIdentifier;

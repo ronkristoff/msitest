@@ -48,6 +48,14 @@ export const listByProject = query({
           ),
         }),
       ),
+      explorationStatus: v.optional(
+        v.record(v.string(), v.union(
+          v.literal("pending"),
+          v.literal("explored"),
+          v.literal("blocked"),
+          v.literal("failed"),
+        )),
+      ),
     }),
   ),
   handler: async (ctx, args) => {
