@@ -15,21 +15,21 @@ export default function Home() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-[32px] leading-tight font-bold text-pitch-black mb-1">Projects</h1>
-          <p className="text-inkwell">
-            Manage your E2E test projects.
+          <p className="text-[13px] leading-relaxed text-inkwell">
+            E2E test projects and their run history.
           </p>
         </div>
         <CreateProjectDialog />
       </div>
 
       {projects === undefined ? (
-        <div className="flex items-center justify-center py-24 text-muted-foreground text-sm">
+        <div className="flex items-center justify-center py-24 text-inkwell text-[13px]">
           Loading...
         </div>
       ) : projects.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           {projects.map((project: Doc<"projects">) => (
             <ProjectCard key={project._id} project={project} />
           ))}
@@ -46,8 +46,8 @@ function EmptyState() {
         <IconFolder size={20} stroke={1.5} />
       </div>
       <div className="text-center">
-        <p className="text-base font-medium text-pitch-black mb-1">No projects yet</p>
-        <p className="text-sm text-inkwell max-w-xs">
+        <p className="text-[15px] font-medium text-pitch-black mb-1">No projects yet</p>
+        <p className="text-[13px] text-inkwell max-w-xs">
           Create your first project by providing a target URL and description.
         </p>
       </div>
@@ -59,11 +59,13 @@ function ProjectCard({ project }: { project: Doc<"projects"> }) {
   return (
     <Link
       href={`/projects/${project._id}`}
-      className="block border border-oatmeal rounded-cards bg-ghost-white p-5 hover:border-clay-violet/30 hover:bg-clay-violet/5 transition-colors"
+      className="group block rounded-cards border border-oatmeal bg-card p-5 transition-shadow hover:shadow-subtle"
     >
-      <h3 className="text-base font-semibold text-pitch-black mb-1">{project.name}</h3>
-      <p className="text-sm text-inkwell mb-3 line-clamp-2">{project.description}</p>
-      <p className="text-xs text-platinum-gray truncate">{project.baseUrl}</p>
+      <h3 className="text-[15px] font-semibold text-pitch-black mb-1 group-hover:text-clay-violet transition-colors">
+        {project.name}
+      </h3>
+      <p className="text-[13px] text-inkwell mb-3 line-clamp-2">{project.description}</p>
+      <p className="text-[13px] text-inkwell/60 truncate">{project.baseUrl}</p>
     </Link>
   );
 }

@@ -6,7 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/form-field";
@@ -55,26 +62,27 @@ export function CreateProjectDialog() {
     setOpen(nextOpen);
   }
 
-  const inputClass =
-    "h-9 rounded-buttons border-oatmeal bg-background text-foreground placeholder:text-muted-foreground/50";
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center gap-1.5 h-9 px-4 rounded-buttons bg-pitch-black text-ghost-white text-sm font-medium hover:bg-neutral-800 transition-colors">
+      <DialogTrigger
+        render={<Button size="default" />}
+      >
         <IconPlus size={16} />
         Create Project
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create Project</DialogTitle>
+          <DialogDescription>
+            Add a new project to start running E2E tests.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 px-6 pb-6">
           <FormField label="Project Name" htmlFor="name" error={errors.name?.message}>
             <Input
               id="name"
               type="text"
               {...register("name")}
-              className={inputClass}
               placeholder="My App"
             />
           </FormField>
@@ -84,7 +92,6 @@ export function CreateProjectDialog() {
               id="description"
               type="text"
               {...register("description")}
-              className={inputClass}
               placeholder="E2E tests for the main web app"
             />
           </FormField>
@@ -94,19 +101,18 @@ export function CreateProjectDialog() {
               id="baseUrl"
               type="url"
               {...register("baseUrl")}
-              className={inputClass}
               placeholder="https://app.example.com"
             />
           </FormField>
 
-          {serverError && <p className="text-sm text-error">{serverError}</p>}
+          {serverError && <p className="text-[13px] text-error">{serverError}</p>}
 
-          <div className="flex justify-end gap-2 mt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={!isValid || loading} loading={loading}>
-              {loading ? "Creating..." : "Create"}
+              Create
             </Button>
           </div>
         </form>

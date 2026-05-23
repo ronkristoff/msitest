@@ -21,6 +21,14 @@
   --color-blueberry-deep: #0667d9;
   --color-ube-haze: #c1b0ff;
 
+  /* Semantic surface colors */
+  --color-background: #f9f8f6;
+  --color-foreground: #000000;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #000000;
+  --color-card: #ffffff;
+  --color-card-foreground: #000000;
+
   /* Semantic status colors */
   --color-success: #16a34a;
   --color-success-bg: rgb(22 163 74 / 0.1);
@@ -132,7 +140,7 @@
 }
 
 body {
-  background: var(--color-ghost-white);
+  background: var(--color-cloud-gray);
   color: var(--color-pitch-black);
   font-family: var(--font-sans);
   font-size: 16px;
@@ -161,7 +169,7 @@ body {
   --warning-foreground: var(--color-warning);
 
   /* shadcn-style variables mapped to Clay palette */
-  --background: var(--color-ghost-white);
+  --background: var(--color-cloud-gray);
   --foreground: var(--color-pitch-black);
   --primary: var(--color-pitch-black);
   --primary-foreground: var(--color-ghost-white);
@@ -172,6 +180,10 @@ body {
   --accent: color-mix(in srgb, var(--color-clay-violet) 10%, transparent);
   --accent-foreground: var(--color-clay-violet);
   --destructive: var(--color-error);
+  --popover: var(--color-ghost-white);
+  --popover-foreground: var(--color-pitch-black);
+  --card: var(--color-ghost-white);
+  --card-foreground: var(--color-pitch-black);
   --border: var(--color-oatmeal);
   --input: var(--color-oatmeal);
   --ring: var(--color-clay-violet);

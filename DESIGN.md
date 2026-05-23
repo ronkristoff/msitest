@@ -1,15 +1,15 @@
 # Clay — Style Reference
-> Playful Precision Playground. A brightly lit space filled with meticulously arranged, colorful building blocks.
 
-**Theme:** light
+**Register:** Product — design serves the task, not itself.
+**Theme:** Light only. No dark mode.
 
-This design system feels like a thoughtfully organized play-space, balancing crisp professional typography with unexpected bursts of vibrant, playful color in testimonial cards and illustrations. The overall tone is light and inviting, grounded by a clean, spacious layout. Subtle border treatments and generous radii on containers soften the digital edge, creating a friendly yet authoritative aesthetic.
+> Precise, calm, technical. The UI feels like a well-calibrated instrument: reliable, quiet, focused. Failures are data, not drama. Screenshots over prose, exact numbers over summaries.
 
 ## Font
 
 - **Primary:** Satoshi (free, Fontshare) — geometric sans-serif with friendly character, substitutes Roobert
 - **Mono:** JetBrains Mono — for code, logs, test output, tabular data
-- **Icon system:** Phosphor Icons
+- **Icon system:** Lucide (via shadcn)
 
 ## Tokens — Colors
 
@@ -48,6 +48,7 @@ Additional tokens for pass/fail/warning signals in the test platform. These are 
 - **Substitute:** system-ui, -apple-system, sans-serif
 - **Weights:** 400, 500, 700, 900
 - **Source:** [Fontshare](https://www.fontshare.com/fonts/satoshi) (free)
+- **Body max-width:** 65-75ch. Hierarchy through scale + weight contrast (minimum 1.25 ratio between steps).
 
 ### Type Scale
 
@@ -129,6 +130,60 @@ White background (`--color-ghost-white`), 12px border-radius, 20px padding, `--c
 - Border: `--color-oatmeal`, 12px radius
 - Font: JetBrains Mono
 - Padding: 16px
+
+## Color Strategy
+
+**Restrained** — tinted neutrals carry 90% of the surface. One accent (Clay Violet) at strategic moments. Semantic status colors used only for test result signals, never decoratively.
+
+## Design Principles
+
+1. **Status at a glance.** Pass/fail scannable without reading. Green/red signals visible immediately.
+2. **Show, don't tell.** Screenshots are primary evidence. Text supports, not replaces, visual proof.
+3. **Technical confidence.** Exact data builds trust. No rounding without reason. No hiding failures behind summaries.
+4. **Fast read.** Strong hierarchy, consistent layout, minimal prose. Scanning beats reading.
+5. **Calm under pressure.** When tests fail, the UI helps. No red-alert banners, no frantic animations. Clear, actionable, composed.
+
+## References & Anti-references
+
+**References:**
+- Linear's focused density — information-rich without clutter
+- Vercel Dashboard's restraint — status-first, calm whitespace
+- GitHub Actions run views — step-by-step results, screenshot evidence
+
+**Anti-references:**
+- Purple gradients, glassmorphism, nested cards, Inter font
+- Hero banners, scroll-driven reveals, marketing-speak
+- Emoji-heavy microcopy, playful illustrations
+- Overly rounded corners, decorative blurs, gratuitous shadows
+
+## Accessibility
+
+- WCAG 2.1 AA minimum
+- Full keyboard navigation
+- Screen reader support for all result views
+- Reduced motion: `prefers-reduced-motion` respected (all animations disabled)
+- Color is never the sole indicator of status — icons and labels always accompany pass/fail signals
+
+## Component Library
+
+**shadcn v4 with BaseUI primitives (base-nova style).** All components in `components/ui/` use `@base-ui/react` as the primitive layer, not Radix. Configured in `components.json` with `"style": "base-nova"` and `"rsc": true`.
+
+Key active components: button, card, dialog, table, tabs, badge, sidebar, toast, skeleton, progress, input, select, form, field, alert, separator, accordion, avatar, checkbox, combobox, command, drawer, menu, popover, sheet, slider, switch, tooltip.
+
+### BaseUI-specific patterns
+
+- Use `mergeProps` from `@base-ui/react/merge-props` for prop composition (replaces Radix's `asChild`)
+- Use `useRender` from `@base-ui/react/use-render` for polymorphic rendering
+- BaseUI primitives handle ARIA and keyboard interactions internally
+
+## Layout Patterns
+
+- **Dashboard:** sidebar navigation + main content area
+- **Active sidebar item:** Clay Violet at 10% opacity background, Clay Violet text
+- **Data tables:** Inkwell caption headers (uppercase), Oatmeal bottom borders only, compact rows
+- **Code/log blocks:** Cloud Gray background, JetBrains Mono, 12px radius
+- **Cards:** Ghost White background, Oatmeal border, 12px radius, 20px padding
+- **Buttons:** Pitch Black primary (12px radius), Oatmeal border secondary, Pill buttons for tags/chips
 
 ## Do's and Don'ts
 
