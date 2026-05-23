@@ -1,9 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { IconFolder, IconPlayerPlay, IconServer, IconSettings } from "@tabler/icons-react";
+
+function RedirectToSignIn() {
+  const router = useRouter();
+  useEffect(() => {
+    router.push("/sign-in");
+  }, [router]);
+  return (
+    <div className="flex items-center justify-center h-full text-inkwell text-sm">
+      Redirecting to sign in...
+    </div>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -11,9 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <>
       <Unauthenticated>
-        <div className="flex items-center justify-center h-full text-inkwell text-sm">
-          Redirecting to sign in...
-        </div>
+        <RedirectToSignIn />
       </Unauthenticated>
       <AuthLoading>
         <div className="flex items-center justify-center h-full text-inkwell text-sm">
