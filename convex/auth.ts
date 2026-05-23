@@ -52,7 +52,7 @@ export const getCurrentUser = query({
   args: {},
   returns: v.union(
     v.object({
-      _id: v.id("user"),
+      _id: v.string(),
       _creationTime: v.number(),
       name: v.string(),
       email: v.string(),
