@@ -12,10 +12,10 @@ export default function Home() {
 
   return (
     <div className="max-w-[1200px] mx-auto p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-[32px] leading-tight font-bold text-pitch-black mb-1">Projects</h1>
-          <p className="text-[13px] leading-relaxed text-inkwell">
+          <h1 className="text-heading font-bold text-brand-dark mb-2">Projects</h1>
+          <p className="text-body text-secondary">
             E2E test projects and their run history.
           </p>
         </div>
@@ -23,13 +23,13 @@ export default function Home() {
       </div>
 
       {projects === undefined ? (
-        <div className="flex items-center justify-center py-24 text-inkwell text-[13px]">
+        <div className="flex items-center justify-center py-24 text-secondary text-body-sm">
           Loading...
         </div>
       ) : projects.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-5 grid-cols-1 md:grid-cols-2">
           {projects.map((project: Doc<"projects">) => (
             <ProjectCard key={project._id} project={project} />
           ))}
@@ -41,31 +41,44 @@ export default function Home() {
 
 function EmptyState() {
   return (
-    <div className="border border-oatmeal rounded-cards p-12 flex flex-col items-center gap-4">
-      <div className="w-12 h-12 rounded-full bg-cloud-gray flex items-center justify-center text-platinum-gray">
-        <IconFolder size={20} stroke={1.5} />
+    <div className="rounded-cards bg-surface shadow-raised py-20 px-8 flex flex-col items-center gap-6">
+      <div className="w-16 h-16 rounded-full bg-brand-blue/8 flex items-center justify-center text-brand-blue">
+        <IconFolder size={28} stroke={1.5} />
       </div>
       <div className="text-center">
-        <p className="text-[15px] font-medium text-pitch-black mb-1">No projects yet</p>
-        <p className="text-[13px] text-inkwell max-w-xs">
+        <p className="text-heading-sm font-semibold text-brand-dark mb-2">No projects yet</p>
+        <p className="text-body text-secondary max-w-sm mx-auto">
           Create your first project by providing a target URL and description.
         </p>
       </div>
+      <CreateProjectDialog />
     </div>
   );
 }
 
 function ProjectCard({ project }: { project: Doc<"projects"> }) {
+  const created = new Date(project._creationTime).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
   return (
     <Link
       href={`/projects/${project._id}`}
-      className="group block rounded-cards border border-oatmeal bg-card p-5 transition-shadow hover:shadow-subtle"
+      className="group block rounded-cards border border-border-subtle bg-surface p-5 shadow-raised transition-shadow transition-colors hover:shadow-overlay hover:border-border"
     >
-      <h3 className="text-[15px] font-semibold text-pitch-black mb-1 group-hover:text-clay-violet transition-colors">
-        {project.name}
-      </h3>
-      <p className="text-[13px] text-inkwell mb-3 line-clamp-2">{project.description}</p>
-      <p className="text-[13px] text-inkwell/60 truncate">{project.baseUrl}</p>
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <h3 className="text-subheading font-semibold text-brand-dark transition-colors">
+          {project.name}
+        </h3>
+        <span className="text-caption text-muted shrink-0 mt-1">{created}</span>
+      </div>
+      <p className="text-body-sm text-secondary mb-4 line-clamp-2">{project.description}</p>
+      <div className="flex items-center gap-3 text-caption text-muted">
+        <span className="truncate">{project.baseUrl}</span>
+        <span className="w-1 h-1 rounded-full bg-muted shrink-0" />
+        <span className="text-brand-blue font-medium">View details</span>
+      </div>
     </Link>
   );
 }
