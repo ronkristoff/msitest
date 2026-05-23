@@ -25,6 +25,16 @@
 
 For current implementation state (tables, routes, files), see `ARCHITECTURE.md`.
 
+## Learnings
+
+Hard-won debugging insights live in `docs/learnings/`. Each doc covers a symptom, root cause, fix, and rules to remember. **Read relevant learnings before working on auth, Convex, or Better Auth code.**
+
+| # | Topic | Key Rule |
+|---|-------|----------|
+| 001 | Convex + Better Auth race condition | Wrap auth-required queries in `<Authenticated>` from `convex/react`, not Better Auth's `useSession()` |
+
+When a non-trivial bug is resolved, extract a learning doc following the format in `docs/learnings/001-convex-better-auth-race-condition.md`.
+
 ### Architecture Patterns
 
 - **API response format:** Consistent envelope with success indicator, data payload, error message, and pagination metadata.

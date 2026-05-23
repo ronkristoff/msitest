@@ -15,8 +15,8 @@ import { components } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { v } from "convex/values";
-import { betterAuth } from "better-auth";
-import { organization } from "better-auth/plugins";
+import { betterAuth } from "better-auth/minimal";
+import { organization } from "better-auth/plugins/organization";
 import authConfig from "./auth.config";
 
 const siteUrl = process.env.SITE_URL!;
@@ -79,15 +79,13 @@ export const getCurrentUser = query({
  * return an org-based team ID.
  */
 export async function requireUserId(ctx: Parameters<typeof authComponent.getAuthUser>[0]) {
-  // Try Better Auth component first (production path)
   try {
     const user = await authComponent.getAuthUser(ctx);
     if (user) return user._id;
   } catch {
-    // Component not available — fall through to JWT identity (test env)
+    // Component not registered (test env) — fall through to JWT identity
   }
 
-  // Fallback: use JWT identity (works in convex-test with .withIdentity())
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Not authenticated");
   return identity.tokenIdentifier;
