@@ -19,7 +19,7 @@ An AI-powered end-to-end testing platform inspired by TestSprite. QA teams provi
              │                                │
              ▼                                ▼
       ┌──────────────────────────────────────────────┐
-      │              Convex Cloud                     │
+       │              Convex (Self-Hosted)                │
       │                                              │
       │  Tables:                                     │
       │  - projects, test_suites, test_cases         │
@@ -50,12 +50,12 @@ An AI-powered end-to-end testing platform inspired by TestSprite. QA teams provi
 
 | Decision | Choice | Reasoning |
 |---|---|---|
-| **Deployment** | Next.js + Convex + Coolify (self-hosted) | Full control, SaaS-ready later |
+| **Deployment** | Next.js + Convex + Coolify (fully self-hosted) | Full control, SaaS-ready later |
 | **Auth** | Better Auth (email/password + OAuth + orgs) | Scales to multi-tenant |
 | **LLM** | BYOK — user provides API key (Z.AI / OpenAI / Claude) | Zero inference cost, no lock-in |
 | **Test Execution** | Dual: cloud worker (Coolify) + local agent (dev machine) | Public URLs → cloud, localhost → agent |
 | **Browser** | Direct Playwright + Chromium (no Docker) | Simpler Coolify deployment |
-| **Test Format** | Abstract natural-language plan → LLM generates Playwright code | QA team edits plans, not code |
+| **Test Format** | Abstract natural-language plan → LLM generates JSON action sequence | QA team edits plans, not code |
 | **Test Input** | URL + natural language + PRD (from V1) | Richer context = better tests |
 | **PRD Parsing** | Markdown + PDF + plain text (no images/OCR V1) | Covers 90%+ of real PRDs |
 | **Explore Phase** | Yes — AI navigates from root URL guided by PRD feature map | Bridges what PRD says to what app does |
@@ -66,17 +66,26 @@ An AI-powered end-to-end testing platform inspired by TestSprite. QA teams provi
 | **Self-Healing** | Notify + manual regenerate (auto-heal V2) | Auto-heal is the hardest feature |
 | **Triggers** | Manual + scheduled (Convex crons) + CI webhook | Covers all common workflows |
 | **Organization** | Projects → Test Suites → Test Cases | Maps to how QA teams think |
+| **Concurrency** | 1 run at a time per team (V1), parallel via Workpool (V2) | Simple, predictable execution |
 
 ## Testing Lifecycle (UI Tests)
 
-1. **Project Setup** — Name + optional PRD upload
-2. **Feature Map** — AI extracts features + use cases from PRD (skip-eligible if no PRD)
+**Guided mode (with PRD):**
+1. **Project Setup** — Name + PRD upload + description
+2. **Feature Map** — AI extracts features + use cases from PRD
 3. **Configure** — Provide URL, test account credentials, natural language hints
 4. **Explore** — AI walks live app feature by feature, capturing DOM + screenshots; identifies what's reachable and what's blocked
 5. **Plan & Review** — AI drafts structured test plan; user edits descriptions in natural language, selects/deselects cases
-6. **Generate & Run** — AI generates Playwright code → Workpool enqueues → worker executes → captures screenshots + logs
-7. **Review** — Per-step screenshots, pass/fail verdict, AI-authored failure analysis
-8. **Iterate** — Edit test descriptions in natural language → AI regenerates
+6. **Generate Actions** — AI generates JSON action sequence per test case
+7. **Run** — Workpool enqueues → worker executes → captures screenshots + logs
+8. **Review** — Per-step screenshots, pass/fail verdict, AI-authored failure analysis
+9. **Iterate** — Edit test descriptions in natural language → AI regenerates steps → regenerate actions
+
+**Discovery mode (URL only, no PRD):**
+1. **Project Setup** — URL + optional description (skip PRD)
+2. **Discover** — Worker crawls app from root URL, catalogs pages and interactive elements
+3. **Infer Features** — AI infers features from crawl results
+4. **Plan & Review** — Same as guided mode from step 5 onwards
 
 ## Project Structure
 
@@ -129,11 +138,7 @@ msitest/
 │   └── explore/                  # Explore phase components
 ├── lib/                          # Shared utilities
 │   ├── convex-client.ts          # Convex client init
-│   ├── utils.ts                  # General utilities
-│   └── llm/                      # LLM provider adapters
-│       ├── index.ts              # LLM interface
-│       ├── openai.ts             # OpenAI/Z.AI adapter
-│       └── anthropic.ts          # Anthropic adapter (future)
+│   └── utils.ts                  # General utilities
 └── package.json
 ```
 
@@ -155,7 +160,14 @@ msitest/
 | fileName | string | Original filename |
 | fileType | string | "markdown" / "pdf" / "text" |
 | content | string | Extracted text content |
-| featureMap | json | AI-extracted features + use cases |
+
+### feature_maps
+| Field | Type | Description |
+|---|---|---|
+| prdId | id("prd_documents") | Parent PRD |
+| projectId | id("projects") | Parent project |
+| features | json | Structured feature + use case list |
+| explorationStatus | json | Per-feature status (pending/explored/blocked/failed) |
 
 ### test_suites
 | Field | Type | Description |
@@ -175,9 +187,10 @@ msitest/
 | category | string | "functional" / "security" / "error handling" / etc. |
 | steps | array | Array of natural language step objects |
 | expectedOutcomes | array | Array of expected outcomes |
-| playwriteCode | string | Generated Playwright code (nullable) |
+| actionSequence | json | Generated JSON action sequence (nullable) |
 | targetUrl | string | URL this test targets |
 | order | number | Display order within suite |
+| status | string | "drafting" / "reviewing" / "approved" |
 
 ### test_runs
 | Field | Type | Description |
@@ -197,8 +210,8 @@ msitest/
 | testCaseId | id("test_cases") | Test case executed |
 | status | string | "passed" / "failed" / "blocked" / "skipped" |
 | errorMessage | string | Error message if failed |
-| aiAnalysis | string | AI failure analysis |
 | duration | number | Execution time in ms |
+| stepsSnapshot | json | Snapshot of steps + actionSequence at execution time |
 
 ### test_run_step_results
 | Field | Type | Description |
@@ -218,6 +231,15 @@ msitest/
 | name | string | Credential name (e.g. "Staging Login") |
 | type | string | "basic_auth" / "bearer_token" / "api_key" |
 | value | string | Encrypted credential value |
+| targetUrl | string | URL this credential applies to |
+
+### test_account_credentials
+| Field | Type | Description |
+|---|---|---|
+| projectId | id("projects") | Parent project |
+| name | string | Credential name (e.g. "Staging Login") |
+| username | string | Username or email |
+| password | string | Encrypted password |
 | targetUrl | string | URL this credential applies to |
 
 ### workers
@@ -281,10 +303,10 @@ interface LLMProvider {
 4. User reviews in dashboard, edits descriptions, selects/deselects
 
 ### Code Generation
-1. For each approved test case: LLM generates Playwright TypeScript code
-2. Code uses the abstract steps as a spec
-3. Generated code uses data-testid selectors when available, smart fallbacks otherwise
-4. Code is stored with the test case for execution
+1. For each approved test case: LLM generates a JSON action sequence (not TypeScript code)
+2. Action sequence uses a 28-action DSL: navigate, click, fill, select, check/uncheck, hover, press, upload, waitFor, assert*, etc.
+3. Selector priority: data-testid → text → role
+4. Worker executes the action sequence step by step, capturing screenshots between each step
 
 ### Failure Analysis
 1. After test run: LLM receives test steps + screenshots + error logs
@@ -305,15 +327,16 @@ interface LLMProvider {
 ### Phase 2: AI Engine
 - [ ] PRD upload (markdown + PDF + text)
 - [ ] PRD text extraction and storage
-- [ ] LLM abstraction layer (BYOK — OpenAI-compatible first)
+- [ ] LLM abstraction layer (BYOK — OpenAI-compatible, Convex actions only)
+- [ ] LLM API key onboarding flow (after signup)
 - [ ] Feature map extraction from PRD
 - [ ] Test agent package scaffolding (CLI + Convex client)
 - [ ] Cloud worker registration/healthcheck
-- [ ] Explore phase — page analysis (DOM + screenshots)
-- [ ] Explore phase — link following and feature matching
+- [ ] Explore phase — guided mode (PRD feature matching)
+- [ ] Explore phase — discovery mode (URL-only crawl + feature inference)
 - [ ] Test plan generation from PRD + exploration
 - [ ] Plan review UI (display, edit, select/deselect)
-- [ ] Playwright code generation from approved plan
+- [ ] Action sequence generation from approved plan (JSON DSL, 28 actions)
 
 ### Phase 3: Test Execution
 - [ ] Workpool integration — enqueue test runs
@@ -354,11 +377,14 @@ Playwright + Chromium installed directly on the Coolify server (and on local dev
 ### Why Workpool Instead of Custom Queue
 Workpool provides parallelism limits, retry with backoff, reactive status queries, and onComplete callbacks — all within Convex. Building equivalent from scratch would take weeks.
 
+### Concurrency Model (V1)
+V1 limits to 1 test run at a time per team. The Workpool component enforces this. If a run is in progress, subsequent runs are queued (user sees a "Run queued" toast). Multiple workers per team supported but only one executes at a time. Parallel execution across workers is V2.
+
 ### Why Skip Video V1
 Videos are 10-100MB per run and add significant storage + streaming complexity. Step screenshots cover 90% of debugging needs. Add video when users ask for it.
 
 ### BYOK Architecture
-LLM calls are abstracted behind an interface. Each user/team configures their own API key and preferred provider. The app never pays for inference. This also makes the product SaaS-ready — users bring their own keys, or you offer bundled keys as a paid tier.
+LLM calls run exclusively in Convex actions. The test agent never touches an API key directly — it calls back to Convex for any LLM guidance needed during exploration. Each user is prompted to configure their AI provider (Z.AI / OpenAI) and API key on first signup before accessing AI features. The key is encrypted at rest. This also makes the product SaaS-ready later — users bring their own keys, or you offer bundled keys as a paid tier.
 
 ### Multi-Tenant Ready
 Better Auth organizations + Convex tenant isolation patterns. Everything is scoped by team ID from day one. Adding paid plans later means flipping on billing + limiting features per tier.

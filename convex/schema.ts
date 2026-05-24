@@ -65,12 +65,33 @@ export default defineSchema({
     ),
     steps: v.array(v.string()),
     expectedOutcomes: v.array(v.string()),
-    playwrightCode: v.optional(v.string()),
+    actionSequence: v.optional(
+      v.array(
+        v.object({
+          action: v.string(),
+          selector: v.optional(v.string()),
+          value: v.optional(v.string()),
+          url: v.optional(v.string()),
+          type: v.optional(v.string()),
+          expectedText: v.optional(v.string()),
+          expectedValue: v.optional(v.string()),
+          expectedCount: v.optional(v.number()),
+          expectedAttribute: v.optional(v.string()),
+          timeout: v.optional(v.number()),
+          frameSelector: v.optional(v.string()),
+          accept: v.optional(v.boolean()),
+          position: v.optional(v.object({ x: v.number(), y: v.number() })),
+          cookieName: v.optional(v.string()),
+          cookieValue: v.optional(v.string()),
+          key: v.optional(v.string()),
+        }),
+      ),
+    ),
     targetUrl: v.optional(v.string()),
     status: v.union(
-      v.literal("draft"),
+      v.literal("drafting"),
+      v.literal("reviewing"),
       v.literal("approved"),
-      v.literal("deprecated"),
     ),
     order: v.number(),
   }).index("by_suite", ["suiteId"]),
@@ -109,6 +130,7 @@ export default defineSchema({
     ),
     errorMessage: v.optional(v.string()),
     duration: v.optional(v.number()),
+    stepsSnapshot: v.optional(v.any()),
   }).index("by_run", ["runId"])
     .index("by_test_case", ["testCaseId"]),
 
@@ -147,6 +169,14 @@ export default defineSchema({
     targetUrl: v.optional(v.string()),
   }).index("by_scope", ["scopeId"])
     .index("by_scope_and_name", ["scopeId", "name"]),
+
+  test_account_credentials: defineTable({
+    projectId: v.id("projects"),
+    name: v.string(),
+    username: v.string(),
+    password: v.string(),
+    targetUrl: v.optional(v.string()),
+  }).index("by_project", ["projectId"]),
 
   workers: defineTable({
     name: v.string(),

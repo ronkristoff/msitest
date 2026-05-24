@@ -44,11 +44,11 @@ The platform supports two execution modes: a cloud worker running on the team's 
 
 ### Architecture
 - **Frontend:** Next.js App Router with React and Tailwind CSS, deployed on Coolify
-- **Backend:** Convex (functions, database, file storage, crons)
+- **Backend:** Convex (functions, database, file storage, crons) — self-hosted on Coolify
 - **Auth:** Better Auth component (email/password + GitHub/Google OAuth + organizations)
 - **Job Queue:** Convex Workpool component (parallelism limits, retries, reactive status)
 - **LLM:** BYOK — user provides their own API key. OpenAI-compatible first (Z.AI, OpenAI), Anthropic later
-- **Deployment:** Self-hosted on Coolify (Next.js + cloud test agent). Convex Cloud for backend
+- **Deployment:** Self-hosted on Coolify (Next.js + Convex backend + cloud test agent)
 
 ### Key Modules
 
@@ -72,14 +72,16 @@ The platform supports two execution modes: a cloud worker running on the team's 
 - Calls LLM with structured prompt to produce test case array
 - Output: validated JSON matching the test case schema
 
-#### Code Generator
-- Translates: natural language steps → Playwright TypeScript `.spec.ts` code
-- Follows: selector priority (data-testid → text → role), error handling, step comments
-- Tests: verify generated code compiles and matches expected patterns
+#### Code Generator (Action Sequence Generator)
+- Translates: natural language steps → JSON action sequence DSL
+- Supports 28 actions: navigate, click, fill, select, check/uncheck, hover, press, upload, drag, assert*, wait*, iframe, dialog, scroll, and more
+- Follows: selector priority (data-testid → text → role), error handling per step
+- Output: structured JSON array executed step-by-step by the worker
+- Tests: verify generated JSON matches action schema, round-trip parseable
 
 #### Playwright Runner (Deep Module)
-- Interface: `runTest(code, url, credentials) → { steps: [{ status, screenshotUrl, consoleLogs }] }`
-- Handles: browser launch, isolated context per test, step-by-step execution, screenshot capture, error recovery
+- Interface: `runTest(actionSequence, url, credentials) → { steps: [{ status, screenshotUrl, consoleLogs }] }`
+- Handles: browser launch, isolated context per test, step-by-step execution of JSON action DSL, screenshot capture between steps, error recovery
 - Tests: run against a simple test HTML page, verify screenshots are captured, errors are caught
 
 #### Run Orchestrator
@@ -101,29 +103,39 @@ The platform supports two execution modes: a cloud worker running on the team's 
 - `teams` — Better Auth orgs, scopes all data
 - `projects` — name, description, baseUrl, teamId
 - `prd_documents` — projectId, fileName, fileType, content
-- `feature_maps` — prdId, features (JSON)
+- `feature_maps` — prdId, projectId, features (JSON), explorationStatus
 - `test_suites` — projectId, name, description, schedule, isActive
-- `test_cases` — suiteId, title, description, category, steps, expectedOutcomes, playwriteCode, targetUrl, status, order
+- `test_cases` — suiteId, title, description, category, steps, expectedOutcomes, actionSequence, targetUrl, status, order
 - `test_runs` — suiteId, trigger, status, workerId, startedAt, completedAt
-- `test_run_results` — runId, testCaseId, status, errorMessage, duration
+- `test_run_results` — runId, testCaseId, status, errorMessage, duration, stepsSnapshot (JSON snapshot of steps + actionSequence at execution time)
 - `test_run_step_results` — resultId, stepIndex, description, status, screenshotId, consoleLogs, errorMessage
 - `failure_analyses` — resultId, classification, explanation, suggestedFix
-- `credentials` — projectId, name, type, value (encrypted), targetUrl
+- `credentials` — scopeId, name, type, value (encrypted LLM BYOK key), targetUrl
+- `test_account_credentials` — projectId, name, username, password (encrypted), targetUrl
 - `workers` — name, type, status, lastHeartbeat, teamId
 
 ### API Contracts
 All Convex functions use the new function syntax with `v.*` validators. Key mutations include: `createProject`, `uploadPRD`, `extractFeatureMap`, `startExploration`, `generatePlan`, `saveApprovedPlan`, `createTestRun`, `addStepResult`, `completeRun`, `registerWorker`, `heartbeat`, `claimWork`. Key queries include: `listProjects`, `getTestCasesBySuite`, `getRunResults`, `getRunHistory`, `listWorkers`, `isThereWork`, `getFeatureMap`.
 
 ### Execution Flow
+
+**Guided mode (PRD provided):**
 1. User creates project with URL + PRD + description
 2. AI extracts feature map from PRD
 3. Worker visits root URL, follows links matching PRD features, captures DOM + screenshots
 4. AI generates test plan from feature map + exploration + user description
 5. User reviews/edits/approves plan
-6. AI generates Playwright code per test case
-7. User clicks Run → Workpool enqueues → Worker executes → screenshots captured per step
+6. AI generates JSON action sequence per test case
+7. User clicks Run → Workpool enqueues → Worker executes → screenshots captured between steps
 8. AI analyzes failures with classification + fix suggestions
 9. Results displayed with step-by-step screenshots
+
+**Discovery mode (URL only, no PRD):**
+1. User creates project with URL + optional description (no PRD)
+2. Worker crawls app from root URL, discovers pages and interactive elements
+3. AI infers features from crawl results and generates a feature map
+4. AI generates test plan from discovered features
+5. User reviews/edits/approves plan (same as guided mode from step 5 onwards)
 
 ## Testing Decisions
 
@@ -183,7 +195,7 @@ Tests for Convex functions should follow the patterns in the `@convex-dev/compon
 - Docker containerization of Playwright (V2, if needed)
 - Load/performance testing
 - Mobile app testing (iOS/Android)
-- Self-hosted Convex (Convex Cloud only)
+- Parallel test execution across multiple workers (V2)
 
 ## Further Notes
 
@@ -191,17 +203,20 @@ Tests for Convex functions should follow the patterns in the `@convex-dev/compon
 
 **Phase 1 — Foundation:** Next.js scaffold, Convex schema, Better Auth, dashboard layout, project CRUD, Workpool setup.
 
-**Phase 2 — AI Engine:** PRD upload/parsing, LLM abstraction with BYOK, feature map extraction, explore engine, plan generation, plan review UI, Playwright code generation.
+**Phase 2 — AI Engine:** PRD upload/parsing, LLM abstraction with BYOK + onboarding, feature map extraction, explore engine (guided + discovery modes), plan generation, plan review UI, action sequence generation.
 
 **Phase 3 — Test Execution:** Worker/Agent CLI, cloud worker on Coolify, local agent mode, Workpool job queue integration, Playwright runner with step-by-step screenshots, run orchestration, failure analysis, reporting UI.
 
 **Phase 4 — Polish:** CRUD for test suites, edit/iterate flow, scheduled runs via Convex crons, CI webhook endpoint, credentials management UI, run history and trend visualization, project settings.
 
 ### BYOK Model
-Each team configures their own LLM API key in project settings. The key is encrypted in the Convex database and decrypted only within Convex actions at runtime. This means the platform itself never pays for inference. Supporting OpenAI-compatible APIs first (Z.AI, OpenAI), with Anthropic Claude as a future provider.
+Each team configures their own LLM API key. On first signup, users are prompted to configure their AI provider (Z.AI / OpenAI) and API key before accessing AI features. The key is encrypted in the Convex database and decrypted only within Convex actions at runtime. This means the platform itself never pays for inference. Anthropic Claude is supported as a future provider.
 
 ### Tenant Isolation
-Better Auth organizations scope all data by team. Every Convex query and mutation validates `teamId === currentUser.teamId`. Workers are also scoped per team. This makes adding paid plans later straightforward.
+Better Auth organizations scope all data by team. On signup, a personal organization is auto-created for each user. `teamId` references the organization, not the user identity. Every Convex query and mutation validates `teamId === currentUser.teamId`. Workers are also scoped per team. This makes adding multi-user teams and paid plans later straightforward.
 
 ### Why No Docker for Playwright
 Playwright + Chromium is installed directly on the Coolify server and on QA machines. Browser contexts provide sufficient isolation for internal use. No Docker-in-Docker complexity. Containerization can be added later if concurrent runs become a bottleneck.
+
+### Concurrency Model
+V1 limits test execution to one run at a time per team. The Workpool component enforces this. If a run is in progress, subsequent runs are queued. Multiple workers can exist per team (cloud + local agents), but only one executes at a time. Parallel execution across workers is V2.

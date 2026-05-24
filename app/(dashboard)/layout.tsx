@@ -12,7 +12,7 @@ function RedirectToSignIn() {
     router.push("/sign-in");
   }, [router]);
   return (
-    <div className="flex items-center justify-center h-full text-inkwell text-sm">
+    <div className="flex items-center justify-center h-full text-secondary text-sm">
       Redirecting to sign in...
     </div>
   );
@@ -27,15 +27,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <RedirectToSignIn />
       </Unauthenticated>
       <AuthLoading>
-        <div className="flex items-center justify-center h-full text-inkwell text-sm">
+        <div className="flex items-center justify-center h-full text-secondary text-sm">
           Loading...
         </div>
       </AuthLoading>
       <Authenticated>
         <div className="flex h-full">
-          <aside className="w-60 shrink-0 border-r border-oatmeal bg-ghost-white flex flex-col">
-            <Link href="/" className="h-12 flex items-center px-4 border-b border-oatmeal hover:bg-cloud-gray transition-colors">
-              <span className="text-sm font-semibold text-pitch-black">MSI Test</span>
+          <aside className="w-60 shrink-0 border-r border-sidebar-border bg-sidebar-background flex flex-col">
+            <Link href="/" className="h-14 flex items-center gap-2 px-4 hover:bg-sidebar-accent/50 transition-colors">
+              <span className="w-2 h-2 rounded-full bg-brand-blue shrink-0" />
+              <span className="text-sm font-semibold text-sidebar-foreground">MSI Test</span>
             </Link>
             <nav className="flex-1 p-3 flex flex-col gap-1">
               <SidebarItem icon={IconFolder} label="Projects" href="/" active={pathname === "/" || pathname.startsWith("/projects")} />
@@ -43,9 +44,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <SidebarItem icon={IconServer} label="Workers" href="/workers" active={pathname.startsWith("/workers")} />
               <SidebarItem icon={IconSettings} label="Settings" href="/settings" active={pathname.startsWith("/settings")} />
             </nav>
-            <div className="p-3 border-t border-oatmeal">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-interactiveelements text-inkwell text-sm">
-                <div className="w-5 h-5 rounded-full bg-platinum-gray" />
+            <div className="p-3">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-default text-sidebar-foreground/80 text-sm">
+                <div className="w-5 h-5 rounded-full bg-sidebar-foreground/10" />
                 <span className="truncate">User</span>
               </div>
             </div>
@@ -74,10 +75,10 @@ function SidebarItem({
   return (
     <Link
       href={href}
-      className={`w-full flex items-center gap-2.5 text-left h-9 px-3 rounded-interactiveelements text-sm transition-colors ${
+      className={`w-full flex items-center gap-2.5 text-left h-9 px-3 rounded-default text-sm transition-colors ${
         active
-          ? "bg-clay-violet/10 text-clay-violet font-medium"
-          : "text-inkwell hover:bg-cloud-gray"
+          ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+          : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50"
       }`}
     >
       <Icon size={18} stroke={1.5} />

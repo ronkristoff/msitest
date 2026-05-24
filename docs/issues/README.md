@@ -10,7 +10,7 @@ flowchart LR
   i2 --> i3[#3 PRD Upload & Feature Map]
   i3 --> i4[#4 App Exploration Engine]
   i4 --> i5[#5 Test Plan Generation]
-  i5 --> i6[#6 Playwright Code Generation]
+  i5 -->   i6[#6 Action Sequence Generation]
   i6 --> i7[#7 Worker/Agent & Playwright Runner]
   i7 --> i8[#8 Test Execution & Real-time Results]
   i8 --> i9[#9 Failure Analysis]
@@ -29,7 +29,7 @@ flowchart LR
 | 3 | PRD Upload & Feature Map | AFK | 2 | 2 |
 | 4 | App Exploration Engine | AFK | 3 | 2 |
 | 5 | Test Plan Generation | AFK | 4 | 2 |
-| 6 | Playwright Code Generation | AFK | 5 | 2 |
+| 6 | Action Sequence Generation | AFK | 5 | 2 |
 | 7 | Worker/Agent & Playwright Runner | AFK | 6 | 3 |
 | 8 | Test Execution & Real-time Results | AFK | 7 | 3 |
 | 9 | Failure Analysis | AFK | 8 | 3 |

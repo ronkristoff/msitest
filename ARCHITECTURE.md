@@ -32,7 +32,7 @@ graph TB
     end
 
     subgraph "External Services"
-        Convex[Convex Cloud<br/>Database, Functions,<br/>File Storage]
+        Convex[Convex Backend<br/>Self-hosted on Coolify<br/>Database, Functions,<br/>File Storage]
         Coolify[Coolify<br/>Self-hosted PaaS]
         LLM[Z.AI / OpenAI / Claude<br/>LLM Providers<br/>BYOK]
         AppTarget[App Under Test<br/>QA/staging URLs]
@@ -81,7 +81,7 @@ graph TB
         end
     end
 
-    subgraph "Convex Cloud"
+    subgraph "Convex (Self-Hosted)"
         Functions[Convex Functions<br/>Mutations, Queries, Actions]
         DB[(Convex Database<br/>All app data)]
         Storage[File Storage<br/>Screenshots, PRDs]
@@ -863,7 +863,7 @@ erDiagram
         json steps "Natural language steps"
         json expectedOutcomes
         string targetUrl
-        string playwriteCode "Generated code"
+        json actionSequence "Generated action sequence (28-action DSL)"
         string status "drafting | reviewing | approved"
         int order
     }
@@ -885,6 +885,7 @@ erDiagram
         string status "passed | failed | blocked | skipped"
         string errorMessage
         int duration "ms"
+        json stepsSnapshot "Snapshot at execution time"
     }
 
     test_run_step_results {
@@ -908,10 +909,19 @@ erDiagram
 
     credentials {
         id _id PK
+        id scopeId FK
+        string name
+        string type "llm_provider | api_key"
+        string value "encrypted"
+        string targetUrl
+    }
+
+    test_account_credentials {
+        id _id PK
         id projectId FK
         string name
-        string type "basic_auth | bearer_token | api_key"
-        string value "encrypted"
+        string username
+        string password "encrypted"
         string targetUrl
     }
 
@@ -932,7 +942,8 @@ erDiagram
 ### 9a. LLM Abstraction Interface
 
 ```typescript
-// lib/llm/index.ts — shared between Convex actions and test agent
+// convex/llm.ts — runs exclusively in Convex actions
+// The test agent never touches an API key — it calls back to Convex for LLM
 
 interface LLMProvider {
   generateText(prompt: string, options?: LLMOptions): Promise<string>;
@@ -1046,8 +1057,12 @@ Generate test cases. Each must have:
 
 #### Code Generation
 ```
-System: Generate Playwright TypeScript test code from the following
-natural language test case specification.
+System: Generate a JSON action sequence for this test case.
+The action sequence must use the DSL actions: navigate, click, fill, select,
+check, uncheck, hover, press, upload, drag, waitFor, waitForUrl, waitForTimeout,
+assertVisible, assertHidden, assertText, assertUrl, assertTitle, assertValue,
+assertCount, assertAttribute, goBack, goForward, reload, iframe, dialog, scroll,
+setCookie, clearCookies, type, dblclick.
 
 Test title: {title}
 Steps: {steps}
@@ -1055,14 +1070,12 @@ Expected outcomes: {outcomes}
 Target URL: {url}
 
 Rules:
-- Use data-testid selectors when element text is unique
-- Fallback to text selectors: page.getByText()
-- Fallback to role selectors: page.getByRole()
-- Use page.goto() for navigation
-- Use page.waitForSelector() or locator.waitFor() for timing
-- Use expect() for assertions
-- Each step should be a separate logical block with a comment
-- Handle errors gracefully with try/catch per step
+- Use data-testid selectors when available
+- Fallback to text selectors
+- Fallback to role selectors
+- Each step should map to 1-3 action objects
+- Use waitFor before interacting with dynamic elements
+- Output valid JSON array only
 ```
 
 #### Failure Analysis
@@ -1122,11 +1135,13 @@ sequenceDiagram
 
 ### 10b. Tenant Isolation
 
-- Every row in every table is scoped by `teamId` (from Better Auth organizations)
+- On signup, a personal organization is auto-created via Better Auth for each user
+- Every row in every table is scoped by `teamId` (references Better Auth organization)
 - All Convex queries and mutations validate `teamId === currentUser.teamId`
 - The `workers` table also scopes to `teamId` — each team has their own workers
 - Worker API keys are generated per-team via the dashboard
 - CI webhook API keys are generated per-team/project
+- When multi-user teams are added later, users can be invited to existing orgs
 
 ### 10c. Worker Authentication
 
@@ -1347,7 +1362,12 @@ export const getTestCasesBySuite = query({
     title: v.string(),
     description: v.string(),
     category: v.string(),
-    steps: v.array(v.string()),
+    actionSequence: v.optional(v.array(v.object({
+      action: v.string(),
+      selector: v.optional(v.string()),
+      value: v.optional(v.string()),
+      url: v.optional(v.string()),
+    }))),
     status: v.string(),
     order: v.number(),
   })),
